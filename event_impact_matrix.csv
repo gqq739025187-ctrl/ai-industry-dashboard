@@ -1,0 +1,9 @@
+event,category,direction,strength,time_horizon,description
+Meta提高Capex,GPU,positive,5,长期,云厂资本开支直接提升GPU需求
+Meta提高Capex,HBM,positive,4,长期,AI算力扩张提升HBM需求
+Meta提高Capex,光模块,positive,3,中期,数据中心网络升级增加高速光模块需求
+Meta提高Capex,PCB,positive,2,中期,AI服务器建设增加PCB需求
+英伟达上调收入指引,HBM,positive,5,中期,GPU出货增加提升HBM需求
+英伟达上调收入指引,光模块,positive,3,中期,AI集群扩容增加网络需求
+HBM价格下跌,HBM,negative,5,中期,HBM盈利能力下降
+HBM价格下跌,GPU,neutral,2,短期,对GPU影响有限

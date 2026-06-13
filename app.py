@@ -11,7 +11,9 @@ from dashboard.loaders import (
     load_a_share_ma_data,
     load_a_share_market_data,
     load_chain_relations_data,
+    load_drivers_data,
     load_etf_config_data,
+    load_event_impact_matrix_data,
     load_etf_premium_data,
     load_events_data,
     load_market_expectation_data,
@@ -56,8 +58,10 @@ a_share_watchlist = watchlist[watchlist["market"].eq("A股")]
 us_watchlist = watchlist[watchlist["market"].eq("美股")]
 etf_config = load_etf_config_data()
 events = load_events_data()
+event_impact_matrix = load_event_impact_matrix_data()
 chain_relations = load_chain_relations_data()
 market_expectation = load_market_expectation_data()
+drivers = load_drivers_data()
 a_share_tickers = tuple(a_share_watchlist["ticker"].astype(str).tolist())
 us_tickers = tuple(us_watchlist["ticker"].astype(str).tolist())
 etf_tickers = tuple(etf_config["ticker"].astype(str).tolist())
@@ -81,15 +85,16 @@ if page == "产业链首页":
         chain_relations,
         market_expectation,
         events,
+        drivers,
     )
 elif page == "AI产业链地图":
-    views.render_ai_industry_chain_map(watchlist, events, chain_relations, market_expectation)
+    views.render_ai_industry_chain_map(watchlist, events, chain_relations, market_expectation, drivers)
 elif page == "投资地图":
     views.render_investment_map(watchlist, events)
 elif page == "产业链百科":
     views.render_industry_wiki(watchlist)
 elif page == "事件中心":
-    views.render_event_center(events, watchlist)
+    views.render_event_center(events, watchlist, event_impact_matrix)
 elif page == "资产数据库":
     views.render_asset_database(watchlist)
 elif page == "配置检查":

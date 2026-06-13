@@ -4,6 +4,9 @@ import streamlit as st
 from config.constants import CATEGORY_ORDER
 
 
+TIER_ORDER = {"S": 0, "A": 1, "B": 2, "C": 3}
+
+
 def confidence_percent(value) -> int:
     confidence = pd.to_numeric(value, errors="coerce")
     if pd.isna(confidence):
@@ -35,10 +38,14 @@ def render_industry_wiki(watchlist: pd.DataFrame) -> None:
 
     for category in category_order + extra_categories:
         members = watchlist[watchlist["category"].eq(category)].copy()
+        if "tier" in members.columns:
+            members["_tier_order"] = members["tier"].astype(str).map(TIER_ORDER).fillna(99)
+            members = members.sort_values(["_tier_order", "name"])
         with st.expander(f"{category}（{len(members)}家公司）", expanded=False):
             for _, row in members.iterrows():
-                st.markdown(f"#### {row['name']}")
+                st.markdown(f"#### {row['name']}（{row.get('tier', '')}）")
                 st.caption(f"{row['ticker']} · {row['market']}")
+                st.write(f"tier：{row.get('tier', '')}")
                 st.write(f"主营业务：{row['business']}")
                 st.write(f"市场关注：{row['market_focus']}")
                 st.write(f"核心客户：{row.get('core_customer', '')}")

@@ -1,4 +1,6 @@
+from data_sources.drivers_loader import load_drivers
 from data_sources.events_loader import load_events, map_events_to_companies
+from data_sources.event_matrix_loader import load_event_impact_matrix
 from data_sources.expectation_loader import load_market_expectation
 from data_sources.etf_data import fetch_etf_premium_data, load_etf_config
 from data_sources.market_a_share import (
@@ -18,8 +20,10 @@ __all__ = [
     "fetch_market_data",
     "fetch_us_market_data",
     "load_etf_config",
+    "load_event_impact_matrix",
     "load_events",
     "load_chain_relations",
+    "load_drivers",
     "load_market_expectation",
     "load_watchlist",
     "local_history_status",

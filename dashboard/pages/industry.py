@@ -54,6 +54,7 @@ def render_core_questions(
     market_expectation: Optional[pd.DataFrame] = None,
     chain_relations: Optional[pd.DataFrame] = None,
     events: Optional[pd.DataFrame] = None,
+    drivers: Optional[pd.DataFrame] = None,
 ) -> None:
     st.subheader("核心四问")
 
@@ -73,6 +74,30 @@ def render_core_questions(
         )
         st.dataframe(
             display[["Logic Score", "Cycle Score", "Sentiment Score", "Expectation Level", "Note"]],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    st.markdown("##### 云厂Capex核心驱动因素")
+    capex_drivers = (
+        drivers[drivers["category"].astype(str).eq("云厂Capex")].copy()
+        if drivers is not None and not drivers.empty and "category" in drivers.columns
+        else pd.DataFrame()
+    )
+    if capex_drivers.empty:
+        st.info("暂无云厂Capex驱动因素配置")
+    else:
+        driver_display = capex_drivers.rename(
+            columns={
+                "driver": "驱动因素",
+                "direction": "方向",
+                "importance": "重要性",
+                "leading_or_lagging": "领先/滞后",
+                "description": "说明",
+            }
+        )
+        st.dataframe(
+            driver_display[["驱动因素", "方向", "重要性", "领先/滞后", "说明"]],
             use_container_width=True,
             hide_index=True,
         )
@@ -140,9 +165,10 @@ def render_industry_home(
     chain_relations: Optional[pd.DataFrame] = None,
     market_expectation: Optional[pd.DataFrame] = None,
     events: Optional[pd.DataFrame] = None,
+    drivers: Optional[pd.DataFrame] = None,
 ) -> None:
     st.subheader("产业链首页")
-    render_core_questions(watchlist, market_expectation, chain_relations, events)
+    render_core_questions(watchlist, market_expectation, chain_relations, events, drivers)
 
     has_market_data = industry_chain_data["平均涨跌幅%"].notna().any() if "平均涨跌幅%" in industry_chain_data.columns else False
     if has_market_data:
@@ -238,6 +264,7 @@ def render_asset_database(watchlist: pd.DataFrame) -> None:
             "market": "市场",
             "theme": "主题",
             "category": "产业链",
+            "tier": "层级",
             "business": "业务",
             "market_focus": "市场关注",
             "description": "一句话说明",

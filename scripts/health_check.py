@@ -13,6 +13,9 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_EVENTS_COLUMNS = ["event_name", "industry", "impact_level", "description"]
 REQUIRED_ETF_COLUMNS = ["name", "ticker", "manual_iopv", "manual_nav"]
+VALID_EVENT_DIRECTIONS = ["positive", "negative", "neutral"]
+VALID_LEADING_LAGGING = ["leading", "lagging"]
+VALID_TIERS = ["S", "A", "B", "C", ""]
 
 
 def print_ok(message: str) -> None:
@@ -152,6 +155,40 @@ def check_non_empty_column(data: pd.DataFrame | None, column: str, label: str) -
     return True
 
 
+def check_allowed_values(data: pd.DataFrame | None, column: str, allowed_values: list[str], label: str) -> bool:
+    if data is None:
+        return False
+    if column not in data.columns:
+        print_fail(f"{label} 检查失败：缺少字段 {column}")
+        return False
+    allowed = set(allowed_values)
+    invalid_rows = []
+    for index, value in data[column].items():
+        item = str(value).strip()
+        if item not in allowed:
+            invalid_rows.append(f"第{index + 2}行 {item}")
+    if invalid_rows:
+        print_fail(f"{label} 值不合法：{'; '.join(invalid_rows)}")
+        return False
+    print_ok(f"{label} 合法")
+    return True
+
+
+def report_watchlist_counts(watchlist: pd.DataFrame | None) -> bool:
+    if watchlist is None:
+        return False
+    if "market" not in watchlist.columns or "tier" not in watchlist.columns:
+        print_fail("watchlist.csv 数量统计失败：缺少 market 或 tier")
+        return False
+    a_share_count = int(watchlist["market"].astype(str).eq("A股").sum())
+    overseas_anchor_count = int(
+        ((~watchlist["market"].astype(str).isin(["A股", "ETF"])) & watchlist["tier"].astype(str).eq("S")).sum()
+    )
+    print_ok(f"A股公司数量：{a_share_count}")
+    print_ok(f"海外锚点数量：{overseas_anchor_count}")
+    return True
+
+
 def main() -> int:
     os.chdir(PROJECT_ROOT)
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -167,6 +204,8 @@ def main() -> int:
         CHAIN_ORDER,
         REQUIRED_CATEGORIES,
         REQUIRED_CHAIN_RELATION_COLUMNS,
+        REQUIRED_DRIVER_COLUMNS,
+        REQUIRED_EVENT_IMPACT_MATRIX_COLUMNS,
         REQUIRED_ETF_TICKERS,
         REQUIRED_MARKET_EXPECTATION_COLUMNS,
         REQUIRED_WATCHLIST_COLUMNS,
@@ -174,6 +213,8 @@ def main() -> int:
 
     watchlist = read_csv("watchlist.csv", "watchlist.csv")
     events = read_csv("events.csv", "events.csv")
+    event_impact_matrix = read_csv("event_impact_matrix.csv", "event_impact_matrix.csv")
+    drivers = read_csv("drivers.csv", "drivers.csv")
     etf_config = read_csv("etf_config.csv", "etf_config.csv")
     chain_relations = read_csv("chain_relations.csv", "chain_relations.csv")
     market_expectation = read_csv("market_expectation.csv", "market_expectation.csv")
@@ -181,13 +222,24 @@ def main() -> int:
 
     checks.append(check_columns(watchlist, REQUIRED_WATCHLIST_COLUMNS, "watchlist.csv"))
     checks.append(check_columns(events, REQUIRED_EVENTS_COLUMNS, "events.csv"))
+    checks.append(check_columns(event_impact_matrix, REQUIRED_EVENT_IMPACT_MATRIX_COLUMNS, "event_impact_matrix.csv"))
+    checks.append(check_columns(drivers, REQUIRED_DRIVER_COLUMNS, "drivers.csv"))
     checks.append(check_columns(etf_config, REQUIRED_ETF_COLUMNS, "etf_config.csv"))
     checks.append(check_columns(chain_relations, REQUIRED_CHAIN_RELATION_COLUMNS, "chain_relations.csv"))
     checks.append(check_columns(market_expectation, REQUIRED_MARKET_EXPECTATION_COLUMNS, "market_expectation.csv"))
     checks.append(check_required_values(watchlist, "category", REQUIRED_CATEGORIES, "必需 category"))
+    checks.append(check_allowed_values(watchlist, "tier", VALID_TIERS, "watchlist.csv tier"))
+    checks.append(report_watchlist_counts(watchlist))
     checks.append(check_required_values(etf_config, "ticker", REQUIRED_ETF_TICKERS, "必需 ETF"))
     checks.append(check_relation_categories(chain_relations, allowed_categories))
     checks.append(check_relation_importance(chain_relations))
+    checks.append(check_category_values(event_impact_matrix, "category", allowed_categories, "event_impact_matrix.csv"))
+    checks.append(check_numeric_columns(event_impact_matrix, ["strength"], "event_impact_matrix.csv"))
+    checks.append(check_allowed_values(event_impact_matrix, "direction", VALID_EVENT_DIRECTIONS, "event_impact_matrix.csv direction"))
+    checks.append(check_category_values(drivers, "category", allowed_categories, "drivers.csv"))
+    checks.append(check_numeric_columns(drivers, ["importance"], "drivers.csv"))
+    checks.append(check_allowed_values(drivers, "direction", VALID_EVENT_DIRECTIONS, "drivers.csv direction"))
+    checks.append(check_allowed_values(drivers, "leading_or_lagging", VALID_LEADING_LAGGING, "drivers.csv leading_or_lagging"))
     checks.append(check_category_values(market_expectation, "category", allowed_categories, "market_expectation.csv"))
     checks.append(
         check_numeric_columns(

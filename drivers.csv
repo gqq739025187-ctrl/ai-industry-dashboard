@@ -1,0 +1,11 @@
+driver,category,direction,importance,leading_or_lagging,description
+Meta Capex,云厂Capex,positive,5,leading,Meta资本开支是AI基础设施周期的重要前置信号
+Microsoft Capex,云厂Capex,positive,5,leading,微软Azure和AI基础设施资本开支影响全产业链需求
+Amazon Capex,云厂Capex,positive,5,leading,AWS资本开支影响AI服务器和数据中心建设
+Google Capex,云厂Capex,positive,5,leading,Google云和TPU相关资本开支影响AI基础设施需求
+Nvidia Data Center Revenue,GPU,positive,5,lagging,英伟达数据中心收入反映AI算力需求强度
+Nvidia Data Center Revenue,HBM,positive,5,lagging,GPU出货强度会传导到HBM需求
+Broadcom AI Revenue,交换机/ASIC,positive,5,lagging,博通AI收入反映ASIC和网络芯片需求
+HBM Price,HBM,positive,5,leading,HBM价格反映供需紧张程度
+800G/1.6T Optical Module Orders,光模块,positive,5,leading,高速光模块订单反映AI数据中心网络建设强度
+High-Speed PCB Demand,PCB,positive,4,leading,高速PCB需求反映AI服务器和交换机建设强度

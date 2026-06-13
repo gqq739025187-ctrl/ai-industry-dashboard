@@ -83,11 +83,24 @@ def expectation_display(expectation: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def drivers_display(drivers: pd.DataFrame) -> pd.DataFrame:
+    return drivers.rename(
+        columns={
+            "driver": "驱动因素",
+            "direction": "方向",
+            "importance": "重要性",
+            "leading_or_lagging": "领先/滞后",
+            "description": "说明",
+        }
+    )
+
+
 def render_ai_industry_chain_map(
     watchlist: pd.DataFrame,
     events: pd.DataFrame,
     chain_relations: Optional[pd.DataFrame] = None,
     market_expectation: Optional[pd.DataFrame] = None,
+    drivers: Optional[pd.DataFrame] = None,
 ) -> None:
     st.subheader("AI产业链地图")
     st.caption("本页面用于展示 AI基础设施产业链上下游关系，不展示实时行情。")
@@ -98,6 +111,7 @@ def render_ai_industry_chain_map(
     }
     relations = chain_relations.copy() if chain_relations is not None else pd.DataFrame()
     expectations = market_expectation.copy() if market_expectation is not None else pd.DataFrame()
+    driver_data = drivers.copy() if drivers is not None else pd.DataFrame()
 
     for index, category in enumerate(CHAIN_ORDER):
         members = watchlist[watchlist["category"].eq(category)].copy()
@@ -105,6 +119,7 @@ def render_ai_industry_chain_map(
         upstream_relations = relations[relations["target_category"].eq(category)] if not relations.empty else pd.DataFrame()
         downstream_relations = relations[relations["source_category"].eq(category)] if not relations.empty else pd.DataFrame()
         category_expectation = expectations[expectations["category"].eq(category)] if not expectations.empty else pd.DataFrame()
+        category_drivers = driver_data[driver_data["category"].eq(category)] if not driver_data.empty else pd.DataFrame()
         representative = "、".join(members["name"].astype(str).head(3).tolist()) if not members.empty else "暂无"
         event_count = len(related_events) if related_events is not None else 0
 
@@ -134,6 +149,16 @@ def render_ai_industry_chain_map(
                             "Note",
                         ]
                     ],
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+            st.markdown("#### 核心驱动因素")
+            if category_drivers.empty:
+                st.info("暂无驱动因素配置")
+            else:
+                st.dataframe(
+                    drivers_display(category_drivers)[["驱动因素", "方向", "重要性", "领先/滞后", "说明"]],
                     use_container_width=True,
                     hide_index=True,
                 )

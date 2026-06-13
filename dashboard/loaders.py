@@ -129,6 +129,18 @@ def load_events_data():
 
 @st.cache_data(ttl=300, show_spinner=False)
 @log_timing
+def load_event_impact_matrix_data():
+    return data_layer.load_event_impact_matrix()
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+@log_timing
+def load_drivers_data():
+    return data_layer.load_drivers()
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+@log_timing
 def load_chain_relations_data():
     return data_layer.load_chain_relations()
 
