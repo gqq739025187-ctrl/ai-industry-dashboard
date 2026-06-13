@@ -1,0 +1,8 @@
+category,logic_score,cycle_score,sentiment_score,valuation_score,expectation_level,note
+HBM,95,92,90,40,极高,HBM逻辑强且景气度高，但市场关注度已高
+GPU,95,90,85,45,高,GPU仍是AI基础设施核心，但市场预期较充分
+交换机/ASIC,88,85,75,60,中,ASIC和交换机受益于云厂自研和AI网络升级
+光模块,85,78,75,60,中,1.6T和AI网络升级仍有逻辑，但波动较大
+光器件,80,75,65,65,中,受益于光模块升级，上游器件弹性存在
+PCB,82,72,55,70,中,AI服务器带动高速PCB需求，市场热度低于HBM和光模块
+云厂Capex,90,88,80,55,高,AI资本开支仍是全产业链源头变量

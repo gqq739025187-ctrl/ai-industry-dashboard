@@ -1,0 +1,9 @@
+source_category,target_category,relation_type,description,importance
+云厂Capex,GPU,资本开支驱动,云厂资本开支直接驱动AI加速卡需求,5
+GPU,HBM,产品配套,GPU性能提升带动高带宽内存需求,5
+GPU,交换机/ASIC,产品配套,AI集群规模扩大带动交换机和ASIC需求,4
+交换机/ASIC,光模块,需求传导,AI集群网络带宽提升带动高速光模块需求,5
+光模块,光器件,供给约束,高速光模块依赖激光器、光引擎等核心光器件,4
+GPU,PCB,产品配套,AI服务器和加速卡带动高速PCB需求,4
+云厂Capex,PCB,需求传导,数据中心建设和AI服务器扩张带动PCB需求,3
+云厂Capex,光模块,需求传导,云厂数据中心网络升级带动高速光模块需求,4

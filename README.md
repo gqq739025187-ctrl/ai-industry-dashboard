@@ -59,11 +59,37 @@ HOME=$PWD .venv/bin/streamlit run app.py --server.port 8503 --server.address 127
 http://localhost:8503
 ```
 
+## 健康检查
+
+每次修改项目后，可以先运行一次本地健康检查，确认基础结构没有被破坏：
+
+```bash
+python scripts/health_check.py
+```
+
+这个检查只读取本地文件和导入本地模块，不会请求外部行情接口。
+
 ## 数据文件
 
 - `watchlist.csv`：股票池和产业链分类。
 - `events.csv`：静态事件库。
 - `etf_config.csv`：ETF监控配置，可手动填写 IOPV/NAV。
+- `chain_relations.csv`：产业链上下游关系表，用于描述环节之间的需求传导、产品配套和资本开支驱动关系。
+- `market_expectation.csv`：市场预期层，用于记录产业逻辑、景气度、资金热度、估值吸引力和市场预期程度。
+
+健康检查会同时检查 `chain_relations.csv` 的字段、分类合法性和重要性评分，也会检查 `market_expectation.csv` 的字段、分类、分数和预期程度。
+
+`market_expectation.csv` 用于帮助区分：
+
+- 产业逻辑是否强
+- 当前景气度是否高
+- 资金是否已经拥挤
+- 估值是否仍有吸引力
+- 市场是否已经交易了这个逻辑
+
+## 开发日志
+
+开发日志请查看 `CHANGELOG.md`。
 
 ## 重要说明
 

@@ -1,40 +1,31 @@
 import pandas as pd
 
+from config.constants import REQUIRED_CATEGORIES, REQUIRED_WATCHLIST_COLUMNS
+
 from .utils import timed_log
 
 
 WATCHLIST_FILE = "watchlist.csv"
-WATCHLIST_COLUMNS = [
-    "name",
-    "ticker",
-    "market",
-    "theme",
-    "category",
-    "business",
-    "market_focus",
-    "description",
-]
-REQUIRED_CATEGORIES = ["GPU", "HBM", "光模块", "光器件", "交换机/ASIC", "云厂Capex", "PCB"]
 
 
 @timed_log
 def load_watchlist() -> pd.DataFrame:
     watchlist = pd.read_csv(WATCHLIST_FILE)
-    for column in WATCHLIST_COLUMNS:
+    for column in REQUIRED_WATCHLIST_COLUMNS:
         if column not in watchlist.columns:
             watchlist[column] = ""
-    return watchlist[WATCHLIST_COLUMNS]
+    return watchlist[REQUIRED_WATCHLIST_COLUMNS]
 
 
 def build_watchlist_issues(watchlist: pd.DataFrame) -> pd.DataFrame:
     rows = []
-    missing_columns = [column for column in WATCHLIST_COLUMNS if column not in watchlist.columns]
+    missing_columns = [column for column in REQUIRED_WATCHLIST_COLUMNS if column not in watchlist.columns]
     for column in missing_columns:
         rows.append({"位置": "表头", "问题": f"缺少字段 {column}", "字段": column})
 
     for index, row in watchlist.iterrows():
         csv_line = index + 2
-        for column in WATCHLIST_COLUMNS:
+        for column in REQUIRED_WATCHLIST_COLUMNS:
             if column not in watchlist.columns:
                 continue
             value = row.get(column)
