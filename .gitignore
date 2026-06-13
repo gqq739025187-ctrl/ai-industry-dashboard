@@ -1,0 +1,18 @@
+# Python cache
+__pycache__/
+*.py[cod]
+.pycache_test/
+
+# Local virtual environment
+.venv/
+
+# Local app/runtime files
+Library/
+outputs/
+work/
+
+# macOS
+.DS_Store
+
+# Streamlit local settings can contain machine-specific values
+.streamlit/
