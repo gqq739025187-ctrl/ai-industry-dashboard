@@ -19,18 +19,19 @@ REQUIRED_WATCHLIST_COLUMNS = [
 REQUIRED_CATEGORIES = [
     "云厂Capex",
     "GPU",
+    "ASIC",
     "HBM",
+    "存储链",
     "光模块",
     "光器件",
+    "光纤光缆",
     "交换机/ASIC",
     "PCB",
     "CCL",
-    "液冷",
-    "服务器ODM",
-    "光纤光缆",
     "连接器",
     "电源",
-    "存储链",
+    "液冷",
+    "服务器ODM",
     "ETF映射",
 ]
 
@@ -74,4 +75,25 @@ REQUIRED_DRIVER_COLUMNS = [
 
 CATEGORY_ORDER = REQUIRED_CATEGORIES
 
-CHAIN_ORDER = ["云厂Capex", "GPU", "HBM", "交换机/ASIC", "光模块", "光器件", "PCB"]
+CHAIN_ORDER = [
+    "云厂Capex",
+    "GPU",
+    "ASIC",
+    "HBM",
+    "存储链",
+    "交换机/ASIC",
+    "光模块",
+    "光器件",
+    "光纤光缆",
+    "PCB",
+    "CCL",
+    "连接器",
+    "电源",
+    "液冷",
+    "服务器ODM",
+    "ETF映射",
+]
+
+CATEGORY_COVERAGE_ALIASES = {
+    "ASIC": ["交换机/ASIC"],
+}

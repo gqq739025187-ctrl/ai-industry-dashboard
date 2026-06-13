@@ -59,14 +59,25 @@ def check_columns(data: pd.DataFrame | None, required_columns: list[str], label:
     return True
 
 
-def check_required_values(data: pd.DataFrame | None, column: str, required_values: list[str], label: str) -> bool:
+def check_required_values(
+    data: pd.DataFrame | None,
+    column: str,
+    required_values: list[str],
+    label: str,
+    coverage_aliases: dict[str, list[str]] | None = None,
+) -> bool:
     if data is None:
         return False
     if column not in data.columns:
         print_fail(f"{label} 检查失败：缺少字段 {column}")
         return False
     existing_values = set(data[column].dropna().astype(str).str.strip())
-    missing = [value for value in required_values if value not in existing_values]
+    aliases = coverage_aliases or {}
+    missing = [
+        value
+        for value in required_values
+        if value not in existing_values and not any(alias in existing_values for alias in aliases.get(value, []))
+    ]
     if missing:
         print_fail(f"{label} 缺失：{', '.join(missing)}")
         return False
@@ -201,6 +212,7 @@ def main() -> int:
     checks.append(import_module("config.constants", "config.constants"))
 
     from config.constants import (
+        CATEGORY_COVERAGE_ALIASES,
         CHAIN_ORDER,
         REQUIRED_CATEGORIES,
         REQUIRED_CHAIN_RELATION_COLUMNS,
@@ -227,7 +239,15 @@ def main() -> int:
     checks.append(check_columns(etf_config, REQUIRED_ETF_COLUMNS, "etf_config.csv"))
     checks.append(check_columns(chain_relations, REQUIRED_CHAIN_RELATION_COLUMNS, "chain_relations.csv"))
     checks.append(check_columns(market_expectation, REQUIRED_MARKET_EXPECTATION_COLUMNS, "market_expectation.csv"))
-    checks.append(check_required_values(watchlist, "category", REQUIRED_CATEGORIES, "必需 category"))
+    checks.append(
+        check_required_values(
+            watchlist,
+            "category",
+            REQUIRED_CATEGORIES,
+            "必需 category",
+            CATEGORY_COVERAGE_ALIASES,
+        )
+    )
     checks.append(check_allowed_values(watchlist, "tier", VALID_TIERS, "watchlist.csv tier"))
     checks.append(report_watchlist_counts(watchlist))
     checks.append(check_required_values(etf_config, "ticker", REQUIRED_ETF_TICKERS, "必需 ETF"))

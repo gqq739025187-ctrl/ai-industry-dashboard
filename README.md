@@ -4,11 +4,12 @@
 
 本项目以 **A股AI产业链** 为主，海外龙头作为产业趋势锚点和验证层。
 
-系统重点回答三个问题：
+系统重点回答四个问题：
 
 1. AI资本开支是否增强？
 2. 哪个产业链环节最受益？
 3. 当前股票池和持仓是否处在相关环节中？
+4. 市场是否已经交易了这个逻辑？
 
 ## 当前功能
 
@@ -16,6 +17,11 @@
 - AI产业链地图：展示云厂Capex、GPU、HBM、交换机/ASIC、光模块、光器件、PCB 的上下游关系。
 - 产业链百科：按产业链环节查看公司、主营业务、市场关注点和一句话理解。
 - 事件中心：从 `events.csv` 建立“事件 -> 产业链 -> 公司”的映射。
+- 市场预期层：记录产业逻辑、景气度、资金热度、估值吸引力和预期程度。
+- 事件影响矩阵：把事件映射到产业链和受影响公司。
+- 驱动因素库：记录长期影响产业链的领先指标和滞后指标。
+- A股AI硬件龙头库：以A股公司为主库，覆盖AI硬件产业链关键环节。
+- 海外龙头验证层：用海外核心公司验证产业趋势和资本开支方向。
 - 行情监控：手动刷新 A股、美股、ETF 数据，避免页面打开时自动请求外部接口。
 - ETF溢价监控：监控 ETF 价格、IOPV/NAV 和溢价率。
 - AI产业链日报：基于本地规则和已有缓存生成投研摘要，不调用大模型 API。
@@ -25,16 +31,27 @@
 ```text
 app.py
 data_layer.py
+config/
+  constants.py
 data_sources/
   watchlist_loader.py
   market_a_share.py
   market_us.py
   etf_data.py
   events_loader.py
+  event_matrix_loader.py
+  relations_loader.py
+  expectation_loader.py
+  drivers_loader.py
   utils.py
 dashboard/
   logic.py
   views.py
+  cache.py
+  loaders.py
+  pages/
+scripts/
+  health_check.py
 watchlist.csv
 events.csv
 etf_config.csv
