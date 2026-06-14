@@ -43,6 +43,9 @@ data_sources/
   relations_loader.py
   expectation_loader.py
   drivers_loader.py
+  source_loader.py
+  news_fetcher.py
+  keyword_mapper.py
   utils.py
 dashboard/
   logic.py
@@ -52,6 +55,7 @@ dashboard/
   pages/
 scripts/
   health_check.py
+  fetch_news.py
 watchlist.csv
 events.csv
 etf_config.csv
@@ -88,6 +92,27 @@ python scripts/health_check.py
 
 这个检查只读取本地文件和导入本地模块，不会请求外部行情接口。
 
+## 可信源消息抓取
+
+第一版只抓公开 RSS，不抓需要登录的网站正文，不绕过付费墙，也不保存账号密码到仓库。
+
+运行方式：
+
+```bash
+python scripts/fetch_news.py
+```
+
+系统已预留以下接入类型：
+
+- `public_rss`
+- `public_api`
+- `email_feed`
+- `authenticated_source`
+
+当前实际自动抓取只实现 `public_rss`。
+
+未来需要登录的网站只能通过用户授权、环境变量、OAuth、邮件源或浏览器会话方式处理。代码和 CSV 中只允许保存环境变量名，不保存真实密钥、账号或密码。
+
 ## 数据文件
 
 - `watchlist.csv`：股票池和产业链分类。
@@ -97,6 +122,8 @@ python scripts/health_check.py
 - `etf_config.csv`：ETF监控配置，可手动填写 IOPV/NAV。
 - `chain_relations.csv`：产业链上下游关系表，用于描述环节之间的需求传导、产品配套和资本开支驱动关系。
 - `market_expectation.csv`：市场预期层，用于记录产业逻辑、景气度、资金热度、估值吸引力和市场预期程度。
+- `unified_sources.csv`：统一消息源配置，预留公开 RSS、公开 API、邮件源和授权源。
+- `raw_news.csv`：可信源自动抓取消息，默认状态为 `pending_review`。
 
 健康检查会同时检查 `chain_relations.csv` 的字段、分类合法性和重要性评分，也会检查 `market_expectation.csv` 的字段、分类、分数和预期程度。
 

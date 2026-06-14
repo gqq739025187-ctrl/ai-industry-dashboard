@@ -4,6 +4,7 @@ import contextlib
 import importlib
 import io
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -16,6 +17,7 @@ REQUIRED_ETF_COLUMNS = ["name", "ticker", "manual_iopv", "manual_nav"]
 VALID_EVENT_DIRECTIONS = ["positive", "negative", "neutral"]
 VALID_LEADING_LAGGING = ["leading", "lagging"]
 VALID_TIERS = ["S", "A", "B", "C", ""]
+VALID_BOOL_TEXT = ["true", "false"]
 
 
 def print_ok(message: str) -> None:
@@ -185,6 +187,60 @@ def check_allowed_values(data: pd.DataFrame | None, column: str, allowed_values:
     return True
 
 
+def check_bool_text_values(data: pd.DataFrame | None, column: str, label: str) -> bool:
+    if data is None:
+        return False
+    if column not in data.columns:
+        print_fail(f"{label} 检查失败：缺少字段 {column}")
+        return False
+    invalid_rows = []
+    for index, value in data[column].items():
+        item = str(value).strip().lower()
+        if item not in VALID_BOOL_TEXT:
+            invalid_rows.append(f"第{index + 2}行 {value}")
+    if invalid_rows:
+        print_fail(f"{label} 不是 true/false：{'; '.join(invalid_rows)}")
+        return False
+    print_ok(f"{label} 可识别为 true/false")
+    return True
+
+
+def check_no_enabled_auth_public_rss(sources: pd.DataFrame | None) -> bool:
+    if sources is None:
+        return False
+    invalid_rows = []
+    for index, row in sources.iterrows():
+        enabled = str(row.get("enabled", "")).strip().lower() == "true"
+        requires_auth = str(row.get("requires_auth", "")).strip().lower() == "true"
+        access_type = str(row.get("access_type", "")).strip()
+        feed_type = str(row.get("feed_type", "")).strip()
+        if enabled and requires_auth and access_type == "public_rss" and feed_type == "rss":
+            invalid_rows.append(str(index + 2))
+    if invalid_rows:
+        print_fail(f"unified_sources.csv public_rss 含启用且需认证来源：第 {', '.join(invalid_rows)} 行")
+        return False
+    print_ok("unified_sources.csv public_rss 未启用需认证来源")
+    return True
+
+
+def check_credential_env_keys(sources: pd.DataFrame | None) -> bool:
+    if sources is None:
+        return False
+    pattern = re.compile(r"^[A-Z][A-Z0-9_]*$")
+    invalid_rows = []
+    for index, value in sources.get("credential_env_key", pd.Series(dtype=str)).items():
+        item = str(value).strip()
+        if not item or item.lower() == "nan":
+            continue
+        if not pattern.match(item):
+            invalid_rows.append(f"第{index + 2}行 {item}")
+    if invalid_rows:
+        print_fail(f"credential_env_key 只能写环境变量名：{'; '.join(invalid_rows)}")
+        return False
+    print_ok("credential_env_key 未发现疑似真实密钥")
+    return True
+
+
 def report_watchlist_counts(watchlist: pd.DataFrame | None) -> bool:
     if watchlist is None:
         return False
@@ -219,7 +275,15 @@ def main() -> int:
         REQUIRED_DRIVER_COLUMNS,
         REQUIRED_EVENT_IMPACT_MATRIX_COLUMNS,
         REQUIRED_ETF_TICKERS,
+        REQUIRED_LAYERS,
         REQUIRED_MARKET_EXPECTATION_COLUMNS,
+        REQUIRED_RAW_NEWS_COLUMNS,
+        REQUIRED_UNIFIED_SOURCE_COLUMNS,
+        VALID_ACCESS_TYPES,
+        VALID_AUTH_METHODS,
+        VALID_FEED_TYPES,
+        VALID_RAW_NEWS_STATUS,
+        VALID_SOURCE_TYPES,
         REQUIRED_WATCHLIST_COLUMNS,
     )
 
@@ -230,6 +294,8 @@ def main() -> int:
     etf_config = read_csv("etf_config.csv", "etf_config.csv")
     chain_relations = read_csv("chain_relations.csv", "chain_relations.csv")
     market_expectation = read_csv("market_expectation.csv", "market_expectation.csv")
+    unified_sources = read_csv("unified_sources.csv", "unified_sources.csv")
+    raw_news = read_csv("raw_news.csv", "raw_news.csv")
     allowed_categories = list(dict.fromkeys(REQUIRED_CATEGORIES + CHAIN_ORDER))
 
     checks.append(check_columns(watchlist, REQUIRED_WATCHLIST_COLUMNS, "watchlist.csv"))
@@ -239,6 +305,8 @@ def main() -> int:
     checks.append(check_columns(etf_config, REQUIRED_ETF_COLUMNS, "etf_config.csv"))
     checks.append(check_columns(chain_relations, REQUIRED_CHAIN_RELATION_COLUMNS, "chain_relations.csv"))
     checks.append(check_columns(market_expectation, REQUIRED_MARKET_EXPECTATION_COLUMNS, "market_expectation.csv"))
+    checks.append(check_columns(unified_sources, REQUIRED_UNIFIED_SOURCE_COLUMNS, "unified_sources.csv"))
+    checks.append(check_columns(raw_news, REQUIRED_RAW_NEWS_COLUMNS, "raw_news.csv"))
     checks.append(
         check_required_values(
             watchlist,
@@ -249,6 +317,8 @@ def main() -> int:
         )
     )
     checks.append(check_allowed_values(watchlist, "tier", VALID_TIERS, "watchlist.csv tier"))
+    checks.append(check_allowed_values(watchlist, "layer", REQUIRED_LAYERS, "watchlist.csv layer"))
+    checks.append(check_non_empty_column(watchlist, "subcategory", "watchlist.csv subcategory"))
     checks.append(report_watchlist_counts(watchlist))
     checks.append(check_required_values(etf_config, "ticker", REQUIRED_ETF_TICKERS, "必需 ETF"))
     checks.append(check_relation_categories(chain_relations, allowed_categories))
@@ -269,6 +339,16 @@ def main() -> int:
         )
     )
     checks.append(check_non_empty_column(market_expectation, "expectation_level", "market_expectation.csv expectation_level"))
+    checks.append(check_allowed_values(unified_sources, "source_type", VALID_SOURCE_TYPES, "unified_sources.csv source_type"))
+    checks.append(check_allowed_values(unified_sources, "access_type", VALID_ACCESS_TYPES, "unified_sources.csv access_type"))
+    checks.append(check_allowed_values(unified_sources, "feed_type", VALID_FEED_TYPES, "unified_sources.csv feed_type"))
+    checks.append(check_allowed_values(unified_sources, "auth_method", VALID_AUTH_METHODS, "unified_sources.csv auth_method"))
+    checks.append(check_bool_text_values(unified_sources, "enabled", "unified_sources.csv enabled"))
+    checks.append(check_bool_text_values(unified_sources, "requires_auth", "unified_sources.csv requires_auth"))
+    checks.append(check_numeric_columns(unified_sources, ["credibility"], "unified_sources.csv"))
+    checks.append(check_allowed_values(raw_news, "status", VALID_RAW_NEWS_STATUS, "raw_news.csv status"))
+    checks.append(check_no_enabled_auth_public_rss(unified_sources))
+    checks.append(check_credential_env_keys(unified_sources))
 
     if all(checks):
         print("\n健康检查通过。")

@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-from config.constants import CATEGORY_ORDER
+from config.constants import CATEGORY_ORDER, REQUIRED_LAYERS
 
 
 TIER_ORDER = {"S": 0, "A": 1, "B": 2, "C": 3}
@@ -29,32 +29,41 @@ def render_industry_wiki(watchlist: pd.DataFrame) -> None:
     col4.metric("美股数量", us_count)
     col5.metric("韩股数量", korea_count)
 
-    category_order = [category for category in CATEGORY_ORDER if category in set(watchlist["category"].dropna().astype(str))]
-    extra_categories = [
-        category
-        for category in sorted(watchlist["category"].dropna().astype(str).unique())
-        if category not in category_order
-    ]
+    existing_layers = set(watchlist["layer"].dropna().astype(str))
+    layer_order = [layer for layer in REQUIRED_LAYERS if layer in existing_layers]
+    extra_layers = [layer for layer in sorted(existing_layers) if layer not in layer_order]
 
-    for category in category_order + extra_categories:
-        members = watchlist[watchlist["category"].eq(category)].copy()
-        if "tier" in members.columns:
-            members["_tier_order"] = members["tier"].astype(str).map(TIER_ORDER).fillna(99)
-            members = members.sort_values(["_tier_order", "name"])
-        with st.expander(f"{category}（{len(members)}家公司）", expanded=False):
-            for _, row in members.iterrows():
-                st.markdown(f"#### {row['name']}（{row.get('tier', '')}）")
-                st.caption(f"{row['ticker']} · {row['market']}")
-                st.write(f"tier：{row.get('tier', '')}")
-                st.write(f"主营业务：{row['business']}")
-                st.write(f"市场关注：{row['market_focus']}")
-                st.write(f"核心客户：{row.get('core_customer', '')}")
-                st.write(f"上游：{row.get('upstream', '')}")
-                st.write(f"下游：{row.get('downstream', '')}")
-                st.write(f"利好逻辑：{row.get('bull_case', '')}")
-                st.write(f"风险逻辑：{row.get('bear_case', '')}")
-                st.write(f"一句话理解：{row['description']}")
-                confidence = confidence_percent(row.get("confidence"))
-                st.write(f"理解程度：{confidence}%")
-                st.progress(confidence)
-                st.divider()
+    for layer in layer_order + extra_layers:
+        layer_members = watchlist[watchlist["layer"].astype(str).eq(layer)].copy()
+        with st.expander(f"Layer：{layer}（{len(layer_members)}家公司）", expanded=False):
+            category_order = [
+                category for category in CATEGORY_ORDER if category in set(layer_members["category"].dropna().astype(str))
+            ]
+            extra_categories = [
+                category
+                for category in sorted(layer_members["category"].dropna().astype(str).unique())
+                if category not in category_order
+            ]
+            for category in category_order + extra_categories:
+                members = layer_members[layer_members["category"].eq(category)].copy()
+                if "tier" in members.columns:
+                    members["_tier_order"] = members["tier"].astype(str).map(TIER_ORDER).fillna(99)
+                    members = members.sort_values(["_tier_order", "name"])
+                st.markdown(f"### Category：{category}（{len(members)}家公司）")
+                for _, row in members.iterrows():
+                    st.markdown(f"#### {row['name']}（{row.get('tier', '')}）")
+                    st.caption(f"{row['ticker']} · {row['market']}")
+                    st.write(f"tier：{row.get('tier', '')}")
+                    st.write(f"子方向：{row.get('subcategory', '')}")
+                    st.write(f"主营业务：{row['business']}")
+                    st.write(f"市场关注：{row['market_focus']}")
+                    st.write(f"核心客户：{row.get('core_customer', '')}")
+                    st.write(f"上游：{row.get('upstream', '')}")
+                    st.write(f"下游：{row.get('downstream', '')}")
+                    st.write(f"利好逻辑：{row.get('bull_case', '')}")
+                    st.write(f"风险逻辑：{row.get('bear_case', '')}")
+                    st.write(f"一句话理解：{row['description']}")
+                    confidence = confidence_percent(row.get("confidence"))
+                    st.write(f"理解程度：{confidence}%")
+                    st.progress(confidence)
+                    st.divider()

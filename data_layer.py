@@ -10,6 +10,7 @@ from data_sources.market_a_share import (
 )
 from data_sources.market_us import fetch_us_market_data
 from data_sources.relations_loader import load_chain_relations
+from data_sources.source_loader import load_raw_news, load_unified_sources, save_raw_news
 from data_sources.watchlist_loader import build_watchlist_issues, load_watchlist
 
 
@@ -25,7 +26,10 @@ __all__ = [
     "load_chain_relations",
     "load_drivers",
     "load_market_expectation",
+    "load_raw_news",
+    "load_unified_sources",
     "load_watchlist",
     "local_history_status",
     "map_events_to_companies",
+    "save_raw_news",
 ]

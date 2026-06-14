@@ -17,6 +17,7 @@ from dashboard.loaders import (
     load_etf_premium_data,
     load_events_data,
     load_market_expectation_data,
+    load_raw_news_data,
     load_us_market_data,
     load_watchlist_data,
     merge_a_share_ma_data,
@@ -62,6 +63,7 @@ event_impact_matrix = load_event_impact_matrix_data()
 chain_relations = load_chain_relations_data()
 market_expectation = load_market_expectation_data()
 drivers = load_drivers_data()
+raw_news = load_raw_news_data()
 a_share_tickers = tuple(a_share_watchlist["ticker"].astype(str).tolist())
 us_tickers = tuple(us_watchlist["ticker"].astype(str).tolist())
 etf_tickers = tuple(etf_config["ticker"].astype(str).tolist())
@@ -94,7 +96,7 @@ elif page == "投资地图":
 elif page == "产业链百科":
     views.render_industry_wiki(watchlist)
 elif page == "事件中心":
-    views.render_event_center(events, watchlist, event_impact_matrix)
+    views.render_event_center(events, watchlist, event_impact_matrix, raw_news)
 elif page == "资产数据库":
     views.render_asset_database(watchlist)
 elif page == "配置检查":

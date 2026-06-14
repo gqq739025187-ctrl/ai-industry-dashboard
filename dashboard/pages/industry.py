@@ -49,6 +49,57 @@ def expectation_status(row: pd.Series) -> str:
     return "市场预期相对均衡"
 
 
+def build_layer_summary(
+    watchlist: pd.DataFrame,
+    dashboard_data: Optional[pd.DataFrame] = None,
+    us_dashboard_data: Optional[pd.DataFrame] = None,
+) -> pd.DataFrame:
+    market_parts = []
+    for data in [dashboard_data, us_dashboard_data]:
+        if data is not None and not data.empty and "ticker" in data.columns:
+            market_parts.append(data[["ticker", "change_pct"]].copy())
+    market_data = pd.concat(market_parts, ignore_index=True) if market_parts else pd.DataFrame()
+
+    data = watchlist.copy()
+    if not market_data.empty:
+        data = data.merge(market_data, on="ticker", how="left")
+
+    rows = []
+    for layer, members in data.groupby("layer", dropna=False):
+        layer_name = str(layer).strip() or "未分类"
+        confidence = pd.to_numeric(members.get("confidence"), errors="coerce")
+        change_pct = pd.to_numeric(members.get("change_pct"), errors="coerce") if "change_pct" in members.columns else None
+        row = {
+            "Layer": layer_name,
+            "公司数量": len(members),
+            "A股公司数量": int(members["market"].astype(str).eq("A股").sum()),
+            "海外锚点数量": int(
+                ((~members["market"].astype(str).isin(["A股", "ETF"])) & members["tier"].astype(str).eq("S")).sum()
+            ),
+            "代表 category": "、".join(members["category"].dropna().astype(str).drop_duplicates().head(4).tolist()),
+            "代表公司": "、".join(members["name"].dropna().astype(str).head(5).tolist()),
+            "平均 confidence": "未填写" if confidence.dropna().empty else f"{confidence.mean():.0f}%",
+        }
+        if change_pct is not None and change_pct.notna().any():
+            up_count = int((change_pct > 0).sum())
+            down_count = int((change_pct < 0).sum())
+            row["平均涨跌幅"] = f"{change_pct.mean():.2f}%"
+            row["上涨/下跌家数"] = f"{up_count}/{down_count}"
+        rows.append(row)
+
+    return pd.DataFrame(rows).sort_values("Layer")
+
+
+def render_layer_summary(
+    watchlist: pd.DataFrame,
+    dashboard_data: Optional[pd.DataFrame] = None,
+    us_dashboard_data: Optional[pd.DataFrame] = None,
+) -> None:
+    st.subheader("Layer 汇总")
+    summary = build_layer_summary(watchlist, dashboard_data, us_dashboard_data)
+    st.dataframe(summary, use_container_width=True, hide_index=True)
+
+
 def render_core_questions(
     watchlist: pd.DataFrame,
     market_expectation: Optional[pd.DataFrame] = None,
@@ -169,6 +220,7 @@ def render_industry_home(
 ) -> None:
     st.subheader("产业链首页")
     render_core_questions(watchlist, market_expectation, chain_relations, events, drivers)
+    render_layer_summary(watchlist, dashboard_data, us_dashboard_data)
 
     has_market_data = industry_chain_data["平均涨跌幅%"].notna().any() if "平均涨跌幅%" in industry_chain_data.columns else False
     if has_market_data:
@@ -264,6 +316,8 @@ def render_asset_database(watchlist: pd.DataFrame) -> None:
             "market": "市场",
             "theme": "主题",
             "category": "产业链",
+            "layer": "Layer",
+            "subcategory": "子方向",
             "tier": "层级",
             "business": "业务",
             "market_focus": "市场关注",

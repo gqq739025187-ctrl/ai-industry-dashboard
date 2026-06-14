@@ -48,10 +48,52 @@ def render_event_impact_matrix(event_impact_matrix: pd.DataFrame, watchlist: pd.
     )
 
 
+def render_raw_news(raw_news: pd.DataFrame) -> None:
+    st.subheader("可信源自动抓取消息")
+    st.caption("仅展示 raw_news.csv 中的记录。所有自动抓取内容默认 pending_review，不构成投资建议。")
+
+    if raw_news is None or raw_news.empty:
+        st.info("暂无可信源自动抓取消息。可在终端运行 python scripts/fetch_news.py 后刷新页面。")
+        return
+
+    display = raw_news.rename(
+        columns={
+            "fetch_time": "抓取时间",
+            "published_time": "发布时间",
+            "source_name": "来源",
+            "source_type": "来源类型",
+            "access_type": "接入类型",
+            "title": "标题",
+            "summary": "摘要",
+            "detected_layer": "识别Layer",
+            "detected_category": "识别Category",
+            "event_type": "事件类型",
+            "status": "状态",
+            "url": "链接",
+        }
+    )
+    columns = [
+        "抓取时间",
+        "发布时间",
+        "来源",
+        "来源类型",
+        "接入类型",
+        "标题",
+        "摘要",
+        "识别Layer",
+        "识别Category",
+        "事件类型",
+        "状态",
+        "链接",
+    ]
+    st.dataframe(display[columns], use_container_width=True, hide_index=True)
+
+
 def render_event_center(
     events: pd.DataFrame,
     watchlist: pd.DataFrame,
     event_impact_matrix: Optional[pd.DataFrame] = None,
+    raw_news: Optional[pd.DataFrame] = None,
 ) -> None:
     st.subheader("事件中心")
     st.caption("静态事件库：事件 -> 产业链 -> 公司。")
@@ -101,3 +143,4 @@ def render_event_center(
             )
 
     render_event_impact_matrix(event_impact_matrix if event_impact_matrix is not None else pd.DataFrame(), watchlist)
+    render_raw_news(raw_news if raw_news is not None else pd.DataFrame())

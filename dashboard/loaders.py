@@ -153,6 +153,12 @@ def load_market_expectation_data():
 
 @st.cache_data(ttl=300, show_spinner=False)
 @log_timing
+def load_raw_news_data():
+    return data_layer.load_raw_news()
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+@log_timing
 def load_a_share_market_data(tickers):
     watchlist = data_layer.load_watchlist()
     a_share_watchlist = watchlist[watchlist["market"].eq("A股") & watchlist["ticker"].isin(tickers)]

@@ -1,5 +1,40 @@
 # 开发日志
 
+## V2.2 - 统一消息源框架
+
+### 已完成
+
+- 新增 `unified_sources.csv`
+- 新增 `raw_news.csv`
+- 新增 `data_sources/source_loader.py`
+- 新增 `data_sources/news_fetcher.py`
+- 新增 `data_sources/keyword_mapper.py`
+- 新增 `scripts/fetch_news.py`
+- 当前实现 `public_rss` 自动抓取
+- 预留 `public_api`、`email_feed`、`authenticated_source`
+- 事件中心显示可信源自动抓取消息
+- 健康检查支持统一消息源框架
+
+### 说明
+
+- 所有自动抓取内容默认 `pending_review`
+- 不抓自媒体、论坛、股吧、短视频平台
+- 不绕过付费墙，不抓需要登录的网站正文
+- 不保存账号密码或真实密钥到代码和 CSV
+
+## V2.0 - Layer 视图增强
+
+### 已完成
+
+- 首页新增 Layer 汇总
+- 产业链百科支持 layer -> category -> company 展示
+- 配置检查支持 Layer 覆盖展示
+
+### 说明
+
+- 本阶段只做展示增强
+- 不修改行情逻辑、ETF逻辑、新闻抓取、AI Agent 或自动交易功能
+
 ## V1.3A - A股AI硬件龙头库扩充
 
 ### 已完成
