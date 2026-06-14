@@ -1,7 +1,19 @@
 import pandas as pd
 import streamlit as st
 
-from config.constants import REQUIRED_CATEGORIES, REQUIRED_ETF_TICKERS, REQUIRED_WATCHLIST_COLUMNS
+from config.constants import (
+    CATEGORY_COVERAGE_ALIASES,
+    REQUIRED_CATEGORIES,
+    REQUIRED_ETF_TICKERS,
+    REQUIRED_LAYERS,
+    REQUIRED_WATCHLIST_COLUMNS,
+)
+
+
+def category_is_covered(category: str, existing_categories: set[str]) -> bool:
+    return category in existing_categories or any(
+        alias in existing_categories for alias in CATEGORY_COVERAGE_ALIASES.get(category, [])
+    )
 
 
 def build_watchlist_issues(watchlist: pd.DataFrame) -> pd.DataFrame:
@@ -21,7 +33,7 @@ def build_watchlist_issues(watchlist: pd.DataFrame) -> pd.DataFrame:
 
     existing_categories = set(watchlist["category"].dropna().astype(str).str.strip()) if "category" in watchlist.columns else set()
     for category in REQUIRED_CATEGORIES:
-        if category not in existing_categories:
+        if not category_is_covered(category, existing_categories):
             rows.append({"位置": "category", "问题": f"缺少 category：{category}", "字段": "category"})
 
     return pd.DataFrame(rows)
@@ -62,11 +74,13 @@ def render_config_check(watchlist: pd.DataFrame, etf_config: pd.DataFrame) -> No
     etf_issues = build_etf_issues(etf_config)
     missing_field_count = len(watchlist_issues) + len(etf_issues)
     category_count = watchlist["category"].dropna().astype(str).str.strip().replace("", pd.NA).dropna().nunique()
+    layer_count = watchlist["layer"].dropna().astype(str).str.strip().replace("", pd.NA).dropna().nunique()
 
     summary = pd.DataFrame(
         [
             {"指标": "股票池数量", "数量": len(watchlist)},
             {"指标": "ETF数量", "数量": len(etf_config)},
+            {"指标": "layer数量", "数量": layer_count},
             {"指标": "category数量", "数量": category_count},
             {"指标": "缺失字段数量", "数量": missing_field_count},
         ]
@@ -85,13 +99,27 @@ def render_config_check(watchlist: pd.DataFrame, etf_config: pd.DataFrame) -> No
                 "category": category,
                 "状态": "存在"
                 if "category" in watchlist.columns
-                and category in set(watchlist["category"].dropna().astype(str).str.strip())
+                and category_is_covered(category, set(watchlist["category"].dropna().astype(str).str.strip()))
                 else "缺失",
             }
             for category in REQUIRED_CATEGORIES
         ]
     )
     st.dataframe(category_status, use_container_width=True, hide_index=True)
+
+    st.write("Layer 覆盖")
+    existing_layers = set(watchlist["layer"].dropna().astype(str).str.strip()) if "layer" in watchlist.columns else set()
+    layer_status = pd.DataFrame(
+        [
+            {
+                "Layer": layer,
+                "状态": "存在" if layer in existing_layers else "缺失",
+                "公司数量": int(watchlist["layer"].astype(str).eq(layer).sum()) if "layer" in watchlist.columns else 0,
+            }
+            for layer in REQUIRED_LAYERS
+        ]
+    )
+    st.dataframe(layer_status, use_container_width=True, hide_index=True)
 
     st.write("watchlist.csv 问题")
     if watchlist_issues.empty:

@@ -1,11 +1,17 @@
 import pandas as pd
 
-from config.constants import REQUIRED_CATEGORIES, REQUIRED_WATCHLIST_COLUMNS
+from config.constants import CATEGORY_COVERAGE_ALIASES, REQUIRED_CATEGORIES, REQUIRED_WATCHLIST_COLUMNS
 
 from .utils import timed_log
 
 
 WATCHLIST_FILE = "watchlist.csv"
+
+
+def category_is_covered(category: str, existing_categories: set[str]) -> bool:
+    return category in existing_categories or any(
+        alias in existing_categories for alias in CATEGORY_COVERAGE_ALIASES.get(category, [])
+    )
 
 
 @timed_log
@@ -34,7 +40,7 @@ def build_watchlist_issues(watchlist: pd.DataFrame) -> pd.DataFrame:
 
     existing_categories = set(watchlist["category"].dropna().astype(str).str.strip()) if "category" in watchlist.columns else set()
     for category in REQUIRED_CATEGORIES:
-        if category not in existing_categories:
+        if not category_is_covered(category, existing_categories):
             rows.append({"位置": "category", "问题": f"缺少 category：{category}", "字段": "category"})
 
     return pd.DataFrame(rows)

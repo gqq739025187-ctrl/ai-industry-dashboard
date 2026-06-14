@@ -1,0 +1,9 @@
+source_name,source_type,access_type,feed_type,url,enabled,credibility,requires_auth,auth_method,credential_env_key,allowed_scope,note
+SEC EDGAR,监管披露,public_rss,rss,https://www.sec.gov/newsroom/press-releases.rss,true,5,false,none,,公开披露,SEC新闻与披露入口
+Federal Reserve,央行,public_rss,rss,https://www.federalreserve.gov/feeds/press_all.xml,true,5,false,none,,公开新闻,美联储新闻与政策发布
+U.S. Treasury,财政部,public_rss,rss,https://home.treasury.gov/news/press-releases/rss,true,5,false,none,,公开新闻,美国财政部新闻发布
+BLS,官方统计,public_rss,rss,https://www.bls.gov/feed/news_release_all.rss,true,5,false,none,,公开新闻,美国劳工统计局新闻发布
+BEA,官方统计,public_rss,rss,https://www.bea.gov/news/glance/rss,true,5,false,none,,公开新闻,美国经济分析局新闻发布
+Gmail Research Feed,投行研报,email_feed,email,,false,4,true,email,GMAIL_RESEARCH_FEED,白名单发件人邮件标题和摘要,未来通过邮件订阅解析研报
+Research Platform,投行研报,authenticated_source,browser,,false,4,true,browser_session,RESEARCH_PLATFORM_SESSION,用户授权范围内的标题和摘要,未来接入需要登录的网站
+Market Data Vendor,数据商,public_api,api,,false,4,true,api_key,MARKET_DATA_API_KEY,授权API数据,未来接入数据商API
